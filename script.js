@@ -14,15 +14,15 @@ tailwind.config = {
 const defaultQuestions = [
   {
     id: 1,
+    type: "pg", // <--- Tambahkan tipe pg
     question: "Bahasa pemrograman manakah yang berjalan langsung di browser tanpa instalasi?",
     options: ["Python", "JavaScript", "C++", "Java"],
     answer: 1
   },
   {
     id: 2,
-    question: "Elemen HTML apa yang digunakan untuk membuat judul utama?",
-    options: ["<title>", "<head>", "<h1>", "<p>"],
-    answer: 2
+    type: "essay", // <--- Contoh soal essay
+    question: "Jelaskan kelebihan utama bahasa JavaScript!"
   }
 ];
 
@@ -118,24 +118,42 @@ function renderQuestion() {
   const optionsContainer = document.getElementById('options-container');
   optionsContainer.innerHTML = '';
 
-  q.options.forEach((opt, idx) => {
-    const isSelected = userAnswers[currentQuestionIndex] === idx;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `w-full p-4 text-left rounded-xl border transition flex items-center justify-between cursor-pointer ${
-      isSelected 
-        ? 'bg-indigo-600/20 border-indigo-500 text-white font-semibold' 
-        : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800/50'
-    }`;
-    
-    btn.innerHTML = `
-      <span><strong class="mr-2 text-indigo-400">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span>
-      ${isSelected ? '<i class="fa-solid fa-circle-check text-indigo-400"></i>' : ''}
+  // CEK TIPE SOAL (ESSAY / PG)
+  if (q.type === 'essay') {
+    const currentEssayAns = userAnswers[currentQuestionIndex] || '';
+    optionsContainer.innerHTML = `
+      <textarea 
+        id="input-essay"
+        rows="4"
+        placeholder="Tuliskan jawaban kamu di sini..."
+        class="w-full p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500"
+      >${currentEssayAns}</textarea>
     `;
-    
-    btn.onclick = () => selectOption(idx);
-    optionsContainer.appendChild(btn);
-  });
+
+    document.getElementById('input-essay').addEventListener('input', (e) => {
+      userAnswers[currentQuestionIndex] = e.target.value;
+    });
+  } else {
+    // TAMPILAN PG (KODE LAMA)
+    q.options.forEach((opt, idx) => {
+      const isSelected = userAnswers[currentQuestionIndex] === idx;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `w-full p-4 text-left rounded-xl border transition flex items-center justify-between cursor-pointer ${
+        isSelected 
+          ? 'bg-indigo-600/20 border-indigo-500 text-white font-semibold' 
+          : 'bg-slate-950 border-slate-800 text-slate-300 hover:bg-slate-800/50'
+      }`;
+      
+      btn.innerHTML = `
+        <span><strong class="mr-2 text-indigo-400">${String.fromCharCode(65 + idx)}.</strong> ${opt}</span>
+        ${isSelected ? '<i class="fa-solid fa-circle-check text-indigo-400"></i>' : ''}
+      `;
+      
+      btn.onclick = () => selectOption(idx);
+      optionsContainer.appendChild(btn);
+    });
+  }
 
   document.getElementById('btn-prev').disabled = (currentQuestionIndex === 0);
   
@@ -160,13 +178,16 @@ function changeQuestion(direction) {
 
 function submitQuiz() {
   let correctCount = 0;
+  // Menghitung jumlah soal PG saja
+  const totalPG = questions.filter(q => q.type !== 'essay').length;
+
   questions.forEach((q, idx) => {
-    if (userAnswers[idx] === q.answer) {
+    if (q.type !== 'essay' && userAnswers[idx] === q.answer) {
       correctCount++;
     }
   });
 
-  const finalScore = Math.round((correctCount / questions.length) * 100);
+  const finalScore = totalPG > 0 ? Math.round((correctCount / totalPG) * 100) : 100;
 
   quizResults.push({
     name: currentUser.name,
@@ -178,7 +199,9 @@ function submitQuiz() {
   saveResults();
 
   document.getElementById('final-score').textContent = finalScore;
-  document.getElementById('final-detail').textContent = `Menjawab benar ${correctCount} dari ${questions.length} soal`;
+  document.getElementById('final-detail').textContent = totalPG > 0 
+    ? `Menjawab benar ${correctCount} dari ${totalPG} soal PG` 
+    : `Semua soal berupa Essay (jawaban berhasil dikirim)`;
   switchView('view-result');
 }
 

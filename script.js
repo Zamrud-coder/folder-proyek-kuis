@@ -222,20 +222,27 @@ function renderAdminDashboard() {
     questions.forEach((q, idx) => {
       const item = document.createElement('div');
       item.className = 'bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-2';
+      
+      // Pengecekan apakah soal Essay atau PG
+      const isEssay = q.type === 'essay' || !q.options;
+      const optionsHtml = isEssay 
+        ? `<p class="text-slate-400 italic">Tipe: Soal Essay (Jawaban Teks Bebas)</p>`
+        : `<div class="grid grid-cols-2 gap-1 text-slate-400">
+            ${q.options.map((opt, oIdx) => `
+              <div class="${oIdx === q.answer ? 'text-emerald-400 font-semibold' : ''}">
+                ${String.fromCharCode(65 + oIdx)}. ${opt}${oIdx === q.answer ? '✓' : ''}
+              </div>
+            `).join('')}
+          </div>`;
+
       item.innerHTML = `
         <div class="flex justify-between items-start gap-2">
-          <span class="font-bold text-slate-200">#${idx + 1}. ${q.question}</span>
+          <span class="font-bold text-slate-200">#${idx + 1}. <span class="text-indigo-400">[${isEssay ? 'ESSAY' : 'PG'}]</span> ${q.question}</span>
           <button onclick="deleteQuestion(${idx})" class="text-rose-400 hover:text-rose-300 p-1">
             <i class="fa-solid fa-trash"></i>
           </button>
         </div>
-        <div class="grid grid-cols-2 gap-1 text-slate-400">
-          ${q.options.map((opt, oIdx) => `
-            <div class="${oIdx === q.answer ? 'text-emerald-400 font-semibold' : ''}">
-              ${String.fromCharCode(65 + oIdx)}. ${opt}${oIdx === q.answer ? '✓' : ''}
-            </div>
-          `).join('')}
-        </div>
+        ${optionsHtml}
       `;
       listContainer.appendChild(item);
     });

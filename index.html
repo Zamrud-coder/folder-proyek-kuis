@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizMaster Pro - Sistem Kuis Interaktif</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS Terpisah -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-center items-center p-4 font-sans">
+
+  <!-- ==================== 1. TAMPILAN LOGIN (PESERTA & ADMIN) ==================== -->
+  <div id="view-login" class="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-md p-6">
+    <!-- Tab Switcher Role -->
+    <div class="flex border-b border-slate-800 mb-6 text-sm font-semibold">
+      <button id="tab-peserta-btn" onclick="switchLoginTab('peserta')" class="flex-1 py-3 text-center border-b-2 border-indigo-500 text-indigo-400">
+        <i class="fa-solid fa-user-graduate mr-1"></i> Peserta
+      </button>
+      <button id="tab-admin-btn" onclick="switchLoginTab('admin')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-user-gear mr-1"></i> Pembuat Soal
+      </button>
+    </div>
+
+    <!-- Form Login Peserta -->
+    <form id="form-login-peserta" onsubmit="handleLoginPeserta(event)" class="space-y-4">
+      <h2 class="text-xl font-bold text-white text-center mb-2">Masuk Kuis</h2>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Nama Lengkap</label>
+        <input type="text" id="input-nama" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Email</label>
+        <input type="email" id="input-email" required placeholder="budi@email.com" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">NIM / Instansi</label>
+        <input type="text" id="input-instansi" required placeholder="230101001 / Universitas Negeri Malang" class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+      </div>
+      <button type="submit" class="w-full mt-4 py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold rounded-xl transition shadow-lg shadow-indigo-600/30">
+        Mulai Mengerjakan <i class="fa-solid fa-arrow-right ml-1"></i>
+      </button>
+    </form>
+
+    <!-- Form Login Admin -->
+    <form id="form-login-admin" onsubmit="handleLoginAdmin(event)" class="space-y-4 hidden">
+      <h2 class="text-xl font-bold text-white text-center mb-2">Akses Pembuat Soal</h2>
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Password Admin</label>
+        <input type="password" id="input-admin-pass" required placeholder="Masukkan password..." class="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+      </div>
+      <button type="submit" class="w-full mt-4 py-3 bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-xl transition shadow-lg shadow-emerald-600/30">
+        Kelola Soal & Hasil <i class="fa-solid fa-sliders ml-1"></i>
+      </button>
+    </form>
+  </div>
+
+  <!-- ==================== 2. TAMPILAN KERJAKAN KUIS (PESERTA) ==================== -->
+  <div id="view-quiz" class="hidden w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
+      <div>
+        <h2 id="quiz-user-name" class="text-lg font-bold text-indigo-400">Peserta</h2>
+        <p id="quiz-user-info" class="text-xs text-slate-400"></p>
+      </div>
+      <button onclick="logout()" class="text-xs text-rose-400 hover:text-rose-300 border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 rounded-lg">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar
+      </button>
+    </div>
+
+    <div id="quiz-container">
+      <div class="flex justify-between items-center mb-3">
+        <span id="quiz-progress" class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Soal 1 dari 1</span>
+      </div>
+      
+      <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 mb-6">
+        <h3 id="question-text" class="text-base sm:text-lg font-medium text-white">Pertanyaan akan muncul di sini...</h3>
+      </div>
+
+      <div id="options-container" class="space-y-3 mb-6"></div>
+
+      <div class="flex justify-between items-center pt-4 border-t border-slate-800">
+        <button id="btn-prev" onclick="changeQuestion(-1)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-semibold disabled:opacity-40">
+          <i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+        </button>
+        <button id="btn-next" onclick="changeQuestion(1)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold">
+          Selanjutnya <i class="fa-solid fa-chevron-right ml-1"></i>
+        </button>
+        <button id="btn-submit" onclick="submitQuiz()" class="hidden px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-emerald-600/30">
+          Selesai & Kumpulkan <i class="fa-solid fa-check ml-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 3. TAMPILAN HASIL KUIS (PESERTA) ==================== -->
+  <div id="view-result" class="hidden w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-2xl">
+    <div class="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+      <i class="fa-solid fa-trophy"></i>
+    </div>
+    <h2 class="text-2xl font-bold text-white mb-1">Kuis Selesai!</h2>
+    <p class="text-slate-400 text-sm mb-6">Terima kasih telah berpartisipasi.</p>
+
+    <div class="bg-slate-950 p-6 rounded-2xl border border-slate-800 mb-6">
+      <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-1">Nilai Kamu</p>
+      <div id="final-score" class="text-5xl font-black text-indigo-400 mb-2">0</div>
+      <p id="final-detail" class="text-sm text-slate-300">Menjawab benar 0 dari 0 soal</p>
+    </div>
+
+    <button onclick="logout()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-slate-200 transition">
+      Kembali ke Halaman Utama
+    </button>
+  </div>
+
+  <!-- ==================== 4. DASHBOARD PEMBUAT SOAL (ADMIN) ==================== -->
+  <div id="view-admin" class="hidden w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-emerald-400"><i class="fa-solid fa-user-shield mr-2"></i>Panel Pembuat Soal</h2>
+        <p class="text-xs text-slate-400">Kelola soal kuis dan pantau hasil pengerjaan peserta.</p>
+      </div>
+      <button onclick="logout()" class="text-xs text-rose-400 border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 rounded-lg hover:bg-rose-500/20">
+        <i class="fa-solid fa-right-from-bracket"></i> Keluar Admin
+      </button>
+    </div>
+
+    <div class="flex gap-2 mb-6">
+      <button id="tab-manage-questions" onclick="switchAdminSubTab('questions')" class="px-4 py-2 rounded-xl text-sm font-semibold bg-indigo-600 text-white">
+        <i class="fa-solid fa-list-check mr-1"></i> Kelola Soal (<span id="count-questions">0</span>)
+      </button>
+      <button id="tab-manage-scores" onclick="switchAdminSubTab('scores')" class="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-800 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-square-poll-vertical mr-1"></i> Hasil Peserta (<span id="count-results">0</span>)
+      </button>
+    </div>
+
+    <div id="admin-sub-questions">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <form onsubmit="handleAddQuestion(event)" class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
+          <h3 class="font-bold text-white text-sm border-b border-slate-800 pb-2"><i class="fa-solid fa-plus-circle text-indigo-400 mr-1"></i> Tambah Soal Baru</h3>
+          
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Pertanyaan</label>
+            <textarea id="add-q-text" required rows="2" placeholder="Tuliskan pertanyaan di sini..." class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Pilihan A</label>
+              <input type="text" id="add-opt-0" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Pilihan B</label>
+              <input type="text" id="add-opt-1" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Pilihan C</label>
+              <input type="text" id="add-opt-2" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Pilihan D</label>
+              <input type="text" id="add-opt-3" required class="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Kunci Jawaban Benar</label>
+            <select id="add-correct-index" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500">
+              <option value="0">Pilihan A</option>
+              <option value="1">Pilihan B</option>
+              <option value="2">Pilihan C</option>
+              <option value="3">Pilihan D</option>
+            </select>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg text-xs transition">
+            Simpan Soal
+          </button>
+        </form>
+
+        <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1" id="admin-questions-list"></div>
+      </div>
+    </div>
+
+    <div id="admin-sub-scores" class="hidden">
+      <div class="flex justify-between items-center mb-4">
+        <p class="text-xs text-slate-400">Daftar nilai peserta yang telah mengumpulkan kuis.</p>
+        <button onclick="clearAllResults()" class="px-3 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-semibold transition">
+          <i class="fa-solid fa-trash-can mr-1"></i> Reset Semua Hasil
+        </button>
+      </div>
+
+      <div class="overflow-x-auto bg-slate-950 rounded-xl border border-slate-800">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-900 text-slate-400 uppercase font-semibold border-b border-slate-800">
+            <tr>
+              <th class="p-3">Nama</th>
+              <th class="p-3">Email</th>
+              <th class="p-3">Instansi / NIM</th>
+              <th class="p-3 text-center">Skor Akhir</th>
+              <th class="p-3 text-right">Waktu</th>
+              <th class="p-3 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="admin-scores-table-body" class="divide-y divide-slate-800/50"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Logika Terpisah -->
+  <script src="script.js"></script>
+</body>
+</html>

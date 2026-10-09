@@ -1,0 +1,20 @@
+/* Custom CSS Tambahan */
+
+/* Kustomisasi Scrollbar buat Daftar Soal Admin */
+#admin-questions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#admin-questions-list::-webkit-scrollbar-track {
+  background: #020617;
+  border-radius: 8px;
+}
+
+#admin-questions-list::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 8px;
+}
+
+#admin-questions-list::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

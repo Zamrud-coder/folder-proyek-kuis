@@ -274,55 +274,48 @@ function renderAdminDashboard() {
   }
 }
 
+// Fungsi untuk menyembunyikan pilihan A-D kalau pilih Essay
+function toggleQuestionTypeInput() {
+  const qType = document.getElementById('add-q-type').value;
+  const pgContainer = document.getElementById('pg-options-container');
+  if (qType === 'essay') {
+    pgContainer.classList.add('hidden');
+  } else {
+    pgContainer.classList.remove('hidden');
+  }
+}
+
+// Fungsi Simpan Soal Baru
 function handleAddQuestion(e) {
   e.preventDefault();
+  const qType = document.getElementById('add-q-type').value;
   const qText = document.getElementById('add-q-text').value;
-  const opt0 = document.getElementById('add-opt-0').value;
-  const opt1 = document.getElementById('add-opt-1').value;
-  const opt2 = document.getElementById('add-opt-2').value;
-  const opt3 = document.getElementById('add-opt-3').value;
-  const correctIdx = parseInt(document.getElementById('add-correct-index').value);
 
-  const newQ = {
+  let newQ = {
     id: Date.now(),
-    question: qText,
-    options: [opt0, opt1, opt2, opt3],
-    answer: correctIdx
+    type: qType,
+    question: qText
   };
+
+  // Jika tipe PG, simpan opsi A, B, C, D & kunci jawaban
+  if (qType === 'pg') {
+    const opt0 = document.getElementById('add-opt-0').value;
+    const opt1 = document.getElementById('add-opt-1').value;
+    const opt2 = document.getElementById('add-opt-2').value;
+    const opt3 = document.getElementById('add-opt-3').value;
+    const correctIdx = parseInt(document.getElementById('add-correct-index').value);
+
+    newQ.options = [opt0, opt1, opt2, opt3];
+    newQ.answer = correctIdx;
+  }
 
   questions.push(newQ);
   saveQuestions();
   e.target.reset();
-  renderAdminDashboard();
-}
-
-function deleteQuestion(index) {
-  if (confirm('Hapus soal ini?')) {
-    questions.splice(index, 1);
-    saveQuestions();
-    renderAdminDashboard();
-  }
-}
-
-function deleteResult(index) {
-  if (confirm('Hapus riwayat nilai peserta ini?')) {
-    quizResults.splice(index, 1);
-    saveResults();
-    renderAdminDashboard();
-  }
-}
-
-function clearAllResults() {
-  if (quizResults.length === 0) {
-    alert('Tabel hasil sudah kosong.');
-    return;
-  }
   
-  if (confirm('Yakin ingin menghapus SEMUA riwayat peserta? Data yang dihapus tidak bisa dikembalikan.')) {
-    quizResults = [];
-    saveResults();
-    renderAdminDashboard();
-  }
+  // Reset tampilan form kembali ke PG
+  toggleQuestionTypeInput();
+  renderAdminDashboard();
 }
 
 function switchAdminSubTab(sub) {
